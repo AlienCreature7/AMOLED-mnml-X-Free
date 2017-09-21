@@ -2,7 +2,7 @@ package com.yasang.amoledmnml.xfree.services;
 
 import android.content.Intent;
 
-import com.yasang.amoledmnml.xfree.R;
+import com.dm.wallpaper.board.sample.R;
 import com.dm.wallpaper.board.services.WallpaperBoardMuzeiService;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 
