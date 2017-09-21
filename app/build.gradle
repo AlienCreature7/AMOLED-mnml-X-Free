@@ -31,18 +31,18 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     /*
-     * WallpaperBoard Library
-     *
-     * How to update?
-     * 1. See latest version at GitHub, https://github.com/danimahardhika/wallpaperboard/releases
-     * 2. Change WallpaperBoard dependency matching latest version
-     * 3. com.github.danimahardhika:wallpaperboard:$versionNumber
-     * 4. Sync Project with Gradle Files
-     * 5. Clean project
-     * 6. Done
-     */
+         * WallpaperBoard Library
+         *
+         * How to update?
+         * 1. See latest version at GitHub, https://github.com/danimahardhika/wallpaperboard/releases
+         * 2. Change WallpaperBoard dependency matching latest version
+         * 3. com.github.danimahardhika:wallpaperboard:$versionNumber
+         * 4. Sync Project with Gradle Files
+         * 5. Clean project
+         * 6. Done
+         */
     compile 'com.github.danimahardhika:wallpaperboard:1.5.4'
+    compile project(':library')
 }
