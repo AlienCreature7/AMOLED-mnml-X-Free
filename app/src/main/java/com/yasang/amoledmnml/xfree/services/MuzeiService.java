@@ -1,4 +1,4 @@
-package com.dm.wallpaper.board.sample.services;
+package com.yasang.amoledmnml.xfree.services;
 
 import android.content.Intent;
 

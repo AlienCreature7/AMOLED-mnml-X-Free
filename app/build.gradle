@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.dm.wallpaper.board.sample"
+        applicationId "com.yasang.amoledmnml.xfree"
         minSdkVersion rootProject.ext.MinSdk
         targetSdkVersion rootProject.ext.TargetSdk
         versionCode 1
