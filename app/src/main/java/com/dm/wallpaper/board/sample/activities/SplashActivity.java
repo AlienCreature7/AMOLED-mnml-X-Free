@@ -1,4 +1,4 @@
-package com.yasang.amoledmnml.xfree.activities;
+package com.dm.wallpaper.board.sample.activities;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
