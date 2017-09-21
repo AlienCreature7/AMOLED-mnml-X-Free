@@ -481,7 +481,14 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
         mNavigationView.setItemBackground(background);
         mNavigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.navigation_view_wallpapers) mPosition = 0;
+            if (id == R.id.navigation_view_premium){
+                String url = "https://play.google.com/store/apps/details?id=com.yasang.amoledmnml.xpaid";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+                return false;
+            }
+            else if (id == R.id.navigation_view_wallpapers) mPosition = 0;
             else if (id == R.id.navigation_view_favorites) mPosition = 1;
             else if (id == R.id.navigation_view_settings) mPosition = 2;
             else if (id == R.id.navigation_view_about) mPosition = 3;
