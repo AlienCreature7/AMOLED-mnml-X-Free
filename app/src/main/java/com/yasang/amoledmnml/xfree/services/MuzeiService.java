@@ -1,14 +1,14 @@
-package com.dm.wallpaper.board.sample.services;
+package com.yasang.amoledmnml.xfree.services;
 
 import android.content.Intent;
 
-import com.dm.wallpaper.board.sample.R;
+import com.yasang.amoledmnml.xfree.R;
 import com.dm.wallpaper.board.services.WallpaperBoardMuzeiService;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 
 public class MuzeiService extends WallpaperBoardMuzeiService{
 
-    private static final String SOURCE_NAME = "WallpaperBoard:MuzeiArtSource";
+    private static final String SOURCE_NAME = "AMOLED mnml X";
 
     public MuzeiService() {
         super(SOURCE_NAME);

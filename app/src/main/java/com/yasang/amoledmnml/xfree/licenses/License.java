@@ -1,4 +1,4 @@
-package com.dm.wallpaper.board.sample.licenses;
+package com.yasang.amoledmnml.xfree.licenses;
 
 import com.dm.wallpaper.board.items.InAppBilling;
 

@@ -1,4 +1,4 @@
-package com.dm.wallpaper.board.sample.applications;
+package com.yasang.amoledmnml.xfree.applications;
 
 import com.dm.wallpaper.board.applications.WallpaperBoardApplication;
 

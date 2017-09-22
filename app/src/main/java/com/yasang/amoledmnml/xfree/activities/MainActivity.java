@@ -1,9 +1,9 @@
-package com.dm.wallpaper.board.sample.activities;
+package com.yasang.amoledmnml.xfree.activities;
 
 import android.os.Bundle;
 
 import com.dm.wallpaper.board.activities.WallpaperBoardActivity;
-import com.dm.wallpaper.board.sample.licenses.License;
+import com.yasang.amoledmnml.xfree.licenses.License;
 
 public class MainActivity extends WallpaperBoardActivity {
 
