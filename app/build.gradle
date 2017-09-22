@@ -17,8 +17,8 @@ android {
         applicationId "com.dm.wallpaper.board.sample"
         minSdkVersion rootProject.ext.MinSdk
         targetSdkVersion rootProject.ext.TargetSdk
-        versionCode 1
-        versionName "1.0"
+        versionCode 140
+        versionName "1.4"
         vectorDrawables.useSupportLibrary = true
     }
 
