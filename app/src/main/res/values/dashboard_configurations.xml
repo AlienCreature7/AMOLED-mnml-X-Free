@@ -39,7 +39,7 @@
 
     <!-- Allow to download wallpaper
     * If disabled user only able to apply wallpaper from dashboard -->
-    <bool name="enable_wallpaper_download">true</bool>
+    <bool name="enable_wallpaper_download">false</bool>
 
     <!-- CONFIG: NAVIGATION VIEW HEADER -->
 
