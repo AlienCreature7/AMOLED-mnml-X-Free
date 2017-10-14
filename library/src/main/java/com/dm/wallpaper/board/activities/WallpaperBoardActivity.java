@@ -481,18 +481,18 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
         mNavigationView.setItemBackground(background);
         mNavigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.navigation_view_premium){
+            if (id == R.id.navigation_view_wallpapers) mPosition = 0;
+            else if (id == R.id.navigation_view_favorites) mPosition = 1;
+            else if (id == R.id.navigation_view_settings) mPosition = 2;
+            else if (id == R.id.navigation_view_about) mPosition = 3;
+            else if (id == R.id.navigation_view_donate) mPosition = 4;
+            else if (id == R.id.navigation_view_premium){
                 String url = "https://play.google.com/store/apps/details?id=com.yasang.amoledmnml.xpaid";
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri.parse(url));
                 startActivity(i);
                 return false;
             }
-            else if (id == R.id.navigation_view_wallpapers) mPosition = 0;
-            else if (id == R.id.navigation_view_favorites) mPosition = 1;
-            else if (id == R.id.navigation_view_settings) mPosition = 2;
-            else if (id == R.id.navigation_view_about) mPosition = 3;
-            else if (id == R.id.navigation_view_donate) mPosition = 4;
             else if (id == R.id.navigation_view_share) {
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
@@ -500,13 +500,13 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
                         getResources().getString(R.string.app_name)));
                 intent.putExtra(Intent.EXTRA_TEXT, getResources().getString(R.string.share_app_body,
                         getResources().getString(R.string.app_name),
-                        "https://play.google.com/store/apps/details?id=" +getPackageName()));
+                        "https://play.google.com/store/apps/details?id=" + getPackageName()));
                 startActivity(Intent.createChooser(intent, getResources().getString(R.string.email_client)));
                 return false;
 
             } else if (id == R.id.navigation_view_rate) {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-                        "https://play.google.com/store/apps/details?id=" +getPackageName()));
+                        "https://play.google.com/store/apps/details?id=" + getPackageName()));
                 intent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
                 startActivity(intent);
                 return false;
@@ -546,7 +546,8 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
                 String versionText = "v" + getPackageManager()
                         .getPackageInfo(getPackageName(), 0).versionName;
                 version.setText(versionText);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         if (ColorHelper.isValidColor(imageUrl)) {

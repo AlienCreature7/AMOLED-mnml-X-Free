@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
     <group android:id="@+id/main"
         android:checkableBehavior="single">
-		
-		<item
-            android:id="@+id/navigation_view_premium"
-            android:checked="true"
-            android:title="@string/navigation_view_premium"/>
 
         <item
             android:id="@+id/navigation_view_wallpapers"
@@ -28,6 +25,11 @@
             android:id="@+id/navigation_view_about"
             android:icon="@drawable/ic_drawer_about"
             android:title="@string/navigation_view_about"/>
+
+        <item
+            android:id="@+id/navigation_view_premium"
+            android:icon="@drawable/ic_loyalty"
+            android:title="@string/navigation_view_premium" />
 
     </group>
 
