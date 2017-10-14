@@ -73,6 +73,9 @@ import com.dm.wallpaper.board.utils.listeners.InAppBillingListener;
 import com.dm.wallpaper.board.utils.listeners.NavigationListener;
 import com.dm.wallpaper.board.utils.listeners.TabListener;
 import com.dm.wallpaper.board.utils.views.HeaderView;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.imageaware.ImageViewAware;
@@ -125,6 +128,8 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
     private String mLicenseKey;
     private String[] mDonationProductsId;
 
+    private AdView mAdView;
+
     public void initMainActivity(@Nullable Bundle savedInstanceState, boolean isLicenseCheckerEnabled,
                                  @NonNull byte[] salt, @NonNull String licenseKey,
                                  @NonNull String[] donationProductsId) {
@@ -132,6 +137,15 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
                 R.style.AppThemeDark : R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallpaper_board);
+
+        MobileAds.initialize(getApplicationContext(),
+                "ca-app-pub-3940256099942544~3347511713");
+
+        mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+
         ButterKnife.bind(this);
         Database.get(this.getApplicationContext());
 

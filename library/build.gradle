@@ -107,6 +107,7 @@ dependencies {
     compile 'com.github.danimahardhika.android-helpers:animation:0.0.7'
     compile 'com.github.danimahardhika.android-helpers:license:0.0.7'
     compile 'com.github.danimahardhika.android-helpers:permission:0.0.7'
+    compile 'com.google.android.gms:play-services-ads:11.0.4'
 }
 
 configurations.all {
