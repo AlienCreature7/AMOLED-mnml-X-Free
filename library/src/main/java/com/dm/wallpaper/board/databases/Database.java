@@ -23,6 +23,7 @@ import com.dm.wallpaper.board.utils.AlphanumComparator;
 import com.dm.wallpaper.board.utils.LogUtil;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -74,15 +75,15 @@ public class Database extends SQLiteOpenHelper {
 
     private final Context mContext;
 
-    private static Database mDatabase;
+    private static WeakReference<Database> mDatabase;
     private SQLiteDatabase mSQLiteDatabase;
     private static List<String> mFavoriteUrlsBackup;
 
     public static Database get(@NonNull Context context) {
-        if (mDatabase == null) {
-            mDatabase = new Database(context);
+        if (mDatabase == null || mDatabase.get() == null) {
+            mDatabase = new WeakReference<>(new Database(context));
         }
-        return mDatabase;
+        return mDatabase.get();
     }
 
     private Database(Context context) {
@@ -92,15 +93,15 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_TABLE_CATEGORY = "CREATE TABLE " +TABLE_CATEGORIES+ "(" +
+        String CREATE_TABLE_CATEGORY = "CREATE TABLE " + TABLE_CATEGORIES + "(" +
                 KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
                 KEY_NAME + " TEXT NOT NULL," +
                 KEY_SELECTED + " INTEGER DEFAULT 1," +
                 KEY_MUZEI_SELECTED + " INTEGER DEFAULT 1, " +
-                "UNIQUE (" +KEY_NAME+ "))";
-        String CREATE_TABLE_WALLPAPER = "CREATE TABLE IF NOT EXISTS " +TABLE_WALLPAPERS+ "(" +
+                "UNIQUE (" + KEY_NAME + "))";
+        String CREATE_TABLE_WALLPAPER = "CREATE TABLE IF NOT EXISTS " + TABLE_WALLPAPERS + "(" +
                 KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                KEY_NAME+ " TEXT NOT NULL, " +
+                KEY_NAME + " TEXT NOT NULL, " +
                 KEY_AUTHOR + " TEXT, " +
                 KEY_URL + " TEXT NOT NULL, " +
                 KEY_THUMB_URL + " TEXT NOT NULL, " +
@@ -112,7 +113,7 @@ public class Database extends SQLiteOpenHelper {
                 KEY_CATEGORY + " TEXT NOT NULL," +
                 KEY_FAVORITE + " INTEGER DEFAULT 0," +
                 KEY_ADDED_ON + " TEXT NOT NULL, " +
-                "UNIQUE (" +KEY_URL+ "))";
+                "UNIQUE (" + KEY_URL + "))";
         db.execSQL(CREATE_TABLE_CATEGORY);
         db.execSQL(CREATE_TABLE_WALLPAPER);
     }
@@ -144,7 +145,7 @@ public class Database extends SQLiteOpenHelper {
         cursor.close();
 
         mFavoriteUrlsBackup = new ArrayList<>();
-        cursor = db.query(TABLE_WALLPAPERS, new String[]{KEY_URL}, KEY_FAVORITE +" = ?",
+        cursor = db.query(TABLE_WALLPAPERS, new String[]{KEY_URL}, KEY_FAVORITE + " = ?",
                 new String[]{"1"}, null, null, null);
         if (cursor.moveToFirst()) {
             do {
@@ -158,7 +159,8 @@ public class Database extends SQLiteOpenHelper {
                 String dropQuery = "DROP TABLE IF EXISTS " + tables.get(i);
                 if (!tables.get(i).equalsIgnoreCase("SQLITE_SEQUENCE"))
                     db.execSQL(dropQuery);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         onCreate(db);
     }
@@ -169,8 +171,8 @@ public class Database extends SQLiteOpenHelper {
         for (String url : mFavoriteUrlsBackup) {
             ContentValues values = new ContentValues();
             values.put(KEY_FAVORITE, 1);
-            mDatabase.mSQLiteDatabase.update(TABLE_WALLPAPERS,
-                    values, KEY_URL +" = ?", new String[]{url});
+            mDatabase.get().mSQLiteDatabase.update(TABLE_WALLPAPERS,
+                    values, KEY_URL + " = ?", new String[]{url});
         }
 
         mFavoriteUrlsBackup.clear();
@@ -179,20 +181,20 @@ public class Database extends SQLiteOpenHelper {
 
     public boolean openDatabase() {
         try {
-            if (mDatabase == null) {
+            if (mDatabase == null || mDatabase.get() == null) {
                 LogUtil.e("Database error: openDatabase() database instance is null");
                 return false;
             }
 
-            if (mDatabase.mSQLiteDatabase == null) {
-                mDatabase.mSQLiteDatabase = mDatabase.getWritableDatabase();
+            if (mDatabase.get().mSQLiteDatabase == null) {
+                mDatabase.get().mSQLiteDatabase = mDatabase.get().getWritableDatabase();
             }
 
-            if (!mDatabase.mSQLiteDatabase.isOpen()) {
+            if (!mDatabase.get().mSQLiteDatabase.isOpen()) {
                 LogUtil.e("Database error: database openable false, trying to open the database again");
-                mDatabase.mSQLiteDatabase = mDatabase.getWritableDatabase();
+                mDatabase.get().mSQLiteDatabase = mDatabase.get().getWritableDatabase();
             }
-            return mDatabase.mSQLiteDatabase.isOpen();
+            return mDatabase.get().mSQLiteDatabase.isOpen();
         } catch (SQLiteException | NullPointerException e) {
             LogUtil.e(Log.getStackTraceString(e));
             return false;
@@ -201,16 +203,16 @@ public class Database extends SQLiteOpenHelper {
 
     public boolean closeDatabase() {
         try {
-            if (mDatabase == null) {
+            if (mDatabase == null || mDatabase.get() == null) {
                 LogUtil.e("Database error: closeDatabase() database instance is null");
                 return false;
             }
 
-            if (mDatabase.mSQLiteDatabase == null) {
+            if (mDatabase.get().mSQLiteDatabase == null) {
                 LogUtil.e("Database error: trying to close database which is not opened");
                 return false;
             }
-            mDatabase.mSQLiteDatabase.close();
+            mDatabase.get().mSQLiteDatabase.close();
             return true;
         } catch (SQLiteException | NullPointerException e) {
             LogUtil.e(Log.getStackTraceString(e));
@@ -224,9 +226,9 @@ public class Database extends SQLiteOpenHelper {
             return;
         }
 
-        String query = "INSERT OR IGNORE INTO " +TABLE_CATEGORIES+ " (" +KEY_NAME+ ") VALUES (?);";
-        SQLiteStatement statement = mDatabase.mSQLiteDatabase.compileStatement(query);
-        mDatabase.mSQLiteDatabase.beginTransaction();
+        String query = "INSERT OR IGNORE INTO " + TABLE_CATEGORIES + " (" + KEY_NAME + ") VALUES (?);";
+        SQLiteStatement statement = mDatabase.get().mSQLiteDatabase.compileStatement(query);
+        mDatabase.get().mSQLiteDatabase.beginTransaction();
 
         for (int i = 0; i < list.size(); i++) {
             statement.clearBindings();
@@ -243,8 +245,8 @@ public class Database extends SQLiteOpenHelper {
                 statement.execute();
             }
         }
-        mDatabase.mSQLiteDatabase.setTransactionSuccessful();
-        mDatabase.mSQLiteDatabase.endTransaction();
+        mDatabase.get().mSQLiteDatabase.setTransactionSuccessful();
+        mDatabase.get().mSQLiteDatabase.endTransaction();
     }
 
     public void addWallpapers(@NonNull List<?> list) {
@@ -253,10 +255,10 @@ public class Database extends SQLiteOpenHelper {
             return;
         }
 
-        String query = "INSERT OR IGNORE INTO " +TABLE_WALLPAPERS+ " (" +KEY_NAME+ "," +KEY_AUTHOR+ "," +KEY_URL+ ","
-                +KEY_THUMB_URL+ "," +KEY_CATEGORY+ "," +KEY_ADDED_ON+ ") VALUES (?,?,?,?,?,?);";
-        SQLiteStatement statement = mDatabase.mSQLiteDatabase.compileStatement(query);
-        mDatabase.mSQLiteDatabase.beginTransaction();
+        String query = "INSERT OR IGNORE INTO " + TABLE_WALLPAPERS + " (" + KEY_NAME + "," + KEY_AUTHOR + "," + KEY_URL + ","
+                + KEY_THUMB_URL + "," + KEY_CATEGORY + "," + KEY_ADDED_ON + ") VALUES (?,?,?,?,?,?);";
+        SQLiteStatement statement = mDatabase.get().mSQLiteDatabase.compileStatement(query);
+        mDatabase.get().mSQLiteDatabase.beginTransaction();
 
         for (int i = 0; i < list.size(); i++) {
             statement.clearBindings();
@@ -289,8 +291,8 @@ public class Database extends SQLiteOpenHelper {
                 }
             }
         }
-        mDatabase.mSQLiteDatabase.setTransactionSuccessful();
-        mDatabase.mSQLiteDatabase.endTransaction();
+        mDatabase.get().mSQLiteDatabase.setTransactionSuccessful();
+        mDatabase.get().mSQLiteDatabase.endTransaction();
     }
 
     public void updateWallpaper(Wallpaper wallpaper) {
@@ -320,8 +322,8 @@ public class Database extends SQLiteOpenHelper {
         }
 
         if (values.size() > 0) {
-            mDatabase.mSQLiteDatabase.update(TABLE_WALLPAPERS,
-                    values, KEY_URL +" = ?", new String[]{wallpaper.getUrl()});
+            mDatabase.get().mSQLiteDatabase.update(TABLE_WALLPAPERS,
+                    values, KEY_URL + " = ?", new String[]{wallpaper.getUrl()});
         }
     }
 
@@ -331,11 +333,11 @@ public class Database extends SQLiteOpenHelper {
             return;
         }
 
-        String query = "UPDATE " +TABLE_WALLPAPERS+ " SET " +KEY_FAVORITE+ " = ?, " +KEY_SIZE+ " = ?, "
-                +KEY_MIME_TYPE+ " = ?, " +KEY_WIDTH+ " = ?," +KEY_HEIGHT+ " = ?, " +KEY_COLOR+ " = ? "
-                +"WHERE " +KEY_URL+ " = ?";
-        SQLiteStatement statement = mDatabase.mSQLiteDatabase.compileStatement(query);
-        mDatabase.mSQLiteDatabase.beginTransaction();
+        String query = "UPDATE " + TABLE_WALLPAPERS + " SET " + KEY_FAVORITE + " = ?, " + KEY_SIZE + " = ?, "
+                + KEY_MIME_TYPE + " = ?, " + KEY_WIDTH + " = ?," + KEY_HEIGHT + " = ?, " + KEY_COLOR + " = ? "
+                + "WHERE " + KEY_URL + " = ?";
+        SQLiteStatement statement = mDatabase.get().mSQLiteDatabase.compileStatement(query);
+        mDatabase.get().mSQLiteDatabase.beginTransaction();
 
         for (Wallpaper wallpaper : wallpapers) {
             statement.clearBindings();
@@ -361,8 +363,8 @@ public class Database extends SQLiteOpenHelper {
             statement.execute();
         }
 
-        mDatabase.mSQLiteDatabase.setTransactionSuccessful();
-        mDatabase.mSQLiteDatabase.endTransaction();
+        mDatabase.get().mSQLiteDatabase.setTransactionSuccessful();
+        mDatabase.get().mSQLiteDatabase.endTransaction();
     }
 
     public void selectCategory(int id, boolean isSelected) {
@@ -373,7 +375,7 @@ public class Database extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_SELECTED, isSelected ? 1 : 0);
-        mDatabase.mSQLiteDatabase.update(TABLE_CATEGORIES, values, KEY_ID +" = ?", new String[]{String.valueOf(id)});
+        mDatabase.get().mSQLiteDatabase.update(TABLE_CATEGORIES, values, KEY_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
     public void selectCategoryForMuzei(int id, boolean isSelected) {
@@ -384,7 +386,7 @@ public class Database extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_MUZEI_SELECTED, isSelected ? 1 : 0);
-        mDatabase.mSQLiteDatabase.update(TABLE_CATEGORIES, values, KEY_ID +" = ?", new String[]{String.valueOf(id)});
+        mDatabase.get().mSQLiteDatabase.update(TABLE_CATEGORIES, values, KEY_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
     public void favoriteWallpaper(String url, boolean isFavorite) {
@@ -395,8 +397,8 @@ public class Database extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_FAVORITE, isFavorite ? 1 : 0);
-        mDatabase.mSQLiteDatabase.update(TABLE_WALLPAPERS, values,
-                KEY_URL +" = ?", new String[]{url});
+        mDatabase.get().mSQLiteDatabase.update(TABLE_WALLPAPERS, values,
+                KEY_URL + " = ?", new String[]{url});
     }
 
     private List<String> getSelectedCategories(boolean isMuzei) {
@@ -407,7 +409,7 @@ public class Database extends SQLiteOpenHelper {
 
         List<String> categories = new ArrayList<>();
         String column = isMuzei ? KEY_MUZEI_SELECTED : KEY_SELECTED;
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_CATEGORIES, new String[]{KEY_NAME}, column +" = ?",
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_CATEGORIES, new String[]{KEY_NAME}, column + " = ?",
                 new String[]{"1"}, null, null, KEY_NAME);
         if (cursor.moveToFirst()) {
             do {
@@ -425,7 +427,7 @@ public class Database extends SQLiteOpenHelper {
         }
 
         List<Category> categories = new ArrayList<>();
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_CATEGORIES,
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_CATEGORIES,
                 null, null, null, null, null, KEY_NAME);
         if (cursor.moveToFirst()) {
             do {
@@ -445,7 +447,7 @@ public class Database extends SQLiteOpenHelper {
             String query = "SELECT wallpapers.thumbUrl, wallpapers.color, " +
                     "(SELECT COUNT(*) FROM wallpapers WHERE LOWER(wallpapers.category) LIKE ?) AS count " +
                     "FROM wallpapers WHERE LOWER(wallpapers.category) LIKE ? ORDER BY RANDOM() LIMIT 1";
-            cursor = mDatabase.mSQLiteDatabase.rawQuery(query, new String[]{"%" +name+ "%", "%" +name+ "%"});
+            cursor = mDatabase.get().mSQLiteDatabase.rawQuery(query, new String[]{"%" + name + "%", "%" + name + "%"});
             if (cursor.moveToFirst()) {
                 do {
                     category.setColor(cursor.getInt(cursor.getColumnIndex(KEY_COLOR)));
@@ -472,7 +474,7 @@ public class Database extends SQLiteOpenHelper {
                     "(SELECT wallpapers.thumbUrl FROM wallpapers WHERE LOWER(wallpapers.category) LIKE ? ORDER BY RANDOM() LIMIT 1) AS thumbUrl, " +
                     "(SELECT COUNT(*) FROM wallpapers WHERE LOWER(wallpapers.category) LIKE ?) AS count " +
                     "FROM categories WHERE LOWER(categories.name) = ? LIMIT 1";
-            Cursor cursor = mDatabase.mSQLiteDatabase.rawQuery(query, new String[]{"%" +s+ "%", "%" +s+ "%", s});
+            Cursor cursor = mDatabase.get().mSQLiteDatabase.rawQuery(query, new String[]{"%" + s + "%", "%" + s + "%", s});
             if (cursor.moveToFirst()) {
                 do {
                     Category c = Category.Builder()
@@ -495,8 +497,8 @@ public class Database extends SQLiteOpenHelper {
             return 0;
         }
 
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, "LOWER(" +KEY_CATEGORY+ ") LIKE ?",
-                new String[]{"%" +category.toLowerCase(Locale.getDefault())+ "%"}, null, null, null);
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, "LOWER(" + KEY_CATEGORY + ") LIKE ?",
+                new String[]{"%" + category.toLowerCase(Locale.getDefault()) + "%"}, null, null, null);
         int count = cursor.getCount();
         cursor.close();
         return count;
@@ -510,21 +512,21 @@ public class Database extends SQLiteOpenHelper {
         }
 
         Wallpaper wallpaper = null;
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS,
-                null, KEY_URL +" = ?", new String[]{url}, null, null, null, "1");
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS,
+                null, KEY_URL + " = ?", new String[]{url}, null, null, null, "1");
         if (cursor.moveToFirst()) {
             do {
                 int width = cursor.getInt(cursor.getColumnIndex(KEY_WIDTH));
                 int height = cursor.getInt(cursor.getColumnIndex(KEY_HEIGHT));
                 ImageSize dimensions = null;
-                if (width  > 0 && height > 0) {
+                if (width > 0 && height > 0) {
                     dimensions = new ImageSize(width, height);
                 }
 
                 int wId = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ wId;
+                    name = "Wallpaper " + wId;
                 }
 
                 wallpaper = Wallpaper.Builder()
@@ -559,7 +561,7 @@ public class Database extends SQLiteOpenHelper {
         for (int i = 0; i < filter.size(); i++) {
             Filter.Options options = filter.get(i);
             if (options != null) {
-                if (condition.length() > 0 ) {
+                if (condition.length() > 0) {
                     condition.append(" OR ").append("LOWER(")
                             .append(options.getColumn().getName())
                             .append(")").append(" LIKE ?");
@@ -568,11 +570,11 @@ public class Database extends SQLiteOpenHelper {
                             .append(options.getColumn().getName()).append(")")
                             .append(" LIKE ?");
                 }
-                selection.add("%" +options.getQuery().toLowerCase(Locale.getDefault())+ "%");
+                selection.add("%" + options.getQuery().toLowerCase(Locale.getDefault()) + "%");
             }
         }
 
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, condition.toString(),
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, condition.toString(),
                 selection.toArray(new String[selection.size()]),
                 null, null, KEY_NAME);
         if (cursor.moveToFirst()) {
@@ -580,7 +582,7 @@ public class Database extends SQLiteOpenHelper {
                 int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ id;
+                    name = "Wallpaper " + id;
                 }
 
                 Wallpaper wallpaper = Wallpaper.Builder()
@@ -618,7 +620,7 @@ public class Database extends SQLiteOpenHelper {
         }
 
         List<Wallpaper> wallpapers = new ArrayList<>();
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS,
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS,
                 null, null, null, null, null, getSortBy(Preferences.get(mContext).getSortBy()));
         if (cursor.moveToFirst()) {
             do {
@@ -626,7 +628,7 @@ public class Database extends SQLiteOpenHelper {
                 int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ id;
+                    name = "Wallpaper " + id;
                 }
 
                 Wallpaper.Builder builder = Wallpaper.Builder()
@@ -666,22 +668,22 @@ public class Database extends SQLiteOpenHelper {
         }
 
         List<Wallpaper> wallpapers = new ArrayList<>();
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, null, null, null, null,
-                KEY_ADDED_ON+ " DESC, " +KEY_ID,
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, null, null, null, null,
+                KEY_ADDED_ON + " DESC, " + KEY_ID,
                 String.valueOf(WallpaperBoardApplication.getConfiguration().getLatestWallpapersDisplayMax()));
         if (cursor.moveToFirst()) {
             do {
                 int width = cursor.getInt(cursor.getColumnIndex(KEY_WIDTH));
                 int height = cursor.getInt(cursor.getColumnIndex(KEY_HEIGHT));
                 ImageSize dimensions = null;
-                if (width  > 0 && height > 0) {
+                if (width > 0 && height > 0) {
                     dimensions = new ImageSize(width, height);
                 }
 
                 int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ id;
+                    name = "Wallpaper " + id;
                 }
 
                 Wallpaper wallpaper = Wallpaper.Builder()
@@ -718,22 +720,22 @@ public class Database extends SQLiteOpenHelper {
 
         StringBuilder CONDITION = new StringBuilder();
         for (String item : selected) {
-            if (CONDITION.length() > 0 ) {
+            if (CONDITION.length() > 0) {
                 CONDITION.append(" OR ").append("LOWER(").append(KEY_CATEGORY).append(")").append(" LIKE ?");
             } else {
                 CONDITION.append("LOWER(").append(KEY_CATEGORY).append(")").append(" LIKE ?");
             }
-            selection.add("%" +item.toLowerCase(Locale.getDefault())+ "%");
+            selection.add("%" + item.toLowerCase(Locale.getDefault()) + "%");
         }
 
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, CONDITION.toString(),
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, CONDITION.toString(),
                 selection.toArray(new String[selection.size()]), null, null, "RANDOM()", "1");
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ id;
+                    name = "Wallpaper " + id;
                 }
 
                 wallpaper = Wallpaper.Builder()
@@ -755,7 +757,7 @@ public class Database extends SQLiteOpenHelper {
             return 0;
         }
 
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, null, null, null, null, null, null);
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, null, null, null, null, null, null);
         int rowCount = cursor.getCount();
         cursor.close();
         return rowCount;
@@ -768,21 +770,21 @@ public class Database extends SQLiteOpenHelper {
         }
 
         List<Wallpaper> wallpapers = new ArrayList<>();
-        Cursor cursor = mDatabase.mSQLiteDatabase.query(TABLE_WALLPAPERS, null, KEY_FAVORITE +" = ?",
-                new String[]{"1"}, null, null, KEY_NAME +", "+ KEY_ID);
+        Cursor cursor = mDatabase.get().mSQLiteDatabase.query(TABLE_WALLPAPERS, null, KEY_FAVORITE + " = ?",
+                new String[]{"1"}, null, null, KEY_NAME + ", " + KEY_ID);
         if (cursor.moveToFirst()) {
             do {
                 int width = cursor.getInt(cursor.getColumnIndex(KEY_WIDTH));
                 int height = cursor.getInt(cursor.getColumnIndex(KEY_HEIGHT));
                 ImageSize dimensions = null;
-                if (width  > 0 && height > 0) {
+                if (width > 0 && height > 0) {
                     dimensions = new ImageSize(width, height);
                 }
 
                 int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
                 if (name.length() == 0) {
-                    name = "Wallpaper "+ id;
+                    name = "Wallpaper " + id;
                 }
 
                 Wallpaper wallpaper = Wallpaper.Builder()
@@ -823,9 +825,9 @@ public class Database extends SQLiteOpenHelper {
             return;
         }
 
-        String query = "DELETE FROM " +TABLE_WALLPAPERS+ " WHERE " +KEY_URL+ " = ?";
-        SQLiteStatement statement = mDatabase.mSQLiteDatabase.compileStatement(query);
-        mDatabase.mSQLiteDatabase.beginTransaction();
+        String query = "DELETE FROM " + TABLE_WALLPAPERS + " WHERE " + KEY_URL + " = ?";
+        SQLiteStatement statement = mDatabase.get().mSQLiteDatabase.compileStatement(query);
+        mDatabase.get().mSQLiteDatabase.beginTransaction();
 
         for (Wallpaper wallpaper : wallpapers) {
             statement.clearBindings();
@@ -833,8 +835,8 @@ public class Database extends SQLiteOpenHelper {
             statement.execute();
         }
 
-        mDatabase.mSQLiteDatabase.setTransactionSuccessful();
-        mDatabase.mSQLiteDatabase.endTransaction();
+        mDatabase.get().mSQLiteDatabase.setTransactionSuccessful();
+        mDatabase.get().mSQLiteDatabase.endTransaction();
     }
 
     public void resetAutoIncrement() {
@@ -852,9 +854,9 @@ public class Database extends SQLiteOpenHelper {
             return;
         }
 
-        String query = "DELETE FROM " +TABLE_CATEGORIES+ " WHERE " +KEY_NAME+ " = ?";
-        SQLiteStatement statement = mDatabase.mSQLiteDatabase.compileStatement(query);
-        mDatabase.mSQLiteDatabase.beginTransaction();
+        String query = "DELETE FROM " + TABLE_CATEGORIES + " WHERE " + KEY_NAME + " = ?";
+        SQLiteStatement statement = mDatabase.get().mSQLiteDatabase.compileStatement(query);
+        mDatabase.get().mSQLiteDatabase.beginTransaction();
 
         for (Category category : categories) {
             statement.clearBindings();
@@ -862,22 +864,22 @@ public class Database extends SQLiteOpenHelper {
             statement.execute();
         }
 
-        mDatabase.mSQLiteDatabase.setTransactionSuccessful();
-        mDatabase.mSQLiteDatabase.endTransaction();
+        mDatabase.get().mSQLiteDatabase.setTransactionSuccessful();
+        mDatabase.get().mSQLiteDatabase.endTransaction();
     }
 
     private String getSortBy(PopupItem.Type type) {
         switch (type) {
             case SORT_LATEST:
-                return KEY_ADDED_ON +" DESC, "+ KEY_ID;
+                return KEY_ADDED_ON + " DESC, " + KEY_ID;
             case SORT_OLDEST:
-                return KEY_ADDED_ON +", "+ KEY_ID +" DESC";
+                return KEY_ADDED_ON + ", " + KEY_ID + " DESC";
             case SORT_NAME:
                 return KEY_NAME;
             case SORT_RANDOM:
                 return "RANDOM()";
             default:
-                return KEY_ADDED_ON +" DESC, "+ KEY_ID;
+                return KEY_ADDED_ON + " DESC, " + KEY_ID;
         }
     }
 }
