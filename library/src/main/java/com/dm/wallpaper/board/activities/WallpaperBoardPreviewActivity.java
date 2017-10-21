@@ -150,12 +150,14 @@ public class WallpaperBoardPreviewActivity extends AppCompatActivity implements 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallpaper_preview);
 
+
         MobileAds.initialize(getApplicationContext(),
                 "ca-app-pub-3940256099942544~3347511713");
 
         mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
 
         ButterKnife.bind(this);
 
