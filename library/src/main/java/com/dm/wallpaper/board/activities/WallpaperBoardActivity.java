@@ -128,7 +128,7 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
     private String mLicenseKey;
     private String[] mDonationProductsId;
 
-    private AdView mAdView;
+//    private AdView mAdView;
 
     public void initMainActivity(@Nullable Bundle savedInstanceState, boolean isLicenseCheckerEnabled,
                                  @NonNull byte[] salt, @NonNull String licenseKey,
@@ -137,15 +137,6 @@ public class WallpaperBoardActivity extends AppCompatActivity implements Activit
                 R.style.AppThemeDark : R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallpaper_board);
-
-        MobileAds.initialize(getApplicationContext(),
-                "ca-app-pub-3940256099942544~3347511713");
-
-        mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-
-
         ButterKnife.bind(this);
         Database.get(this.getApplicationContext());
 

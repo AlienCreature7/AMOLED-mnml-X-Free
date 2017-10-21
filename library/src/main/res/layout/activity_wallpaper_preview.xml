@@ -41,6 +41,21 @@
             android:layout_gravity="top|start"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:theme="@style/RippleStyleLight"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.gms.ads.AdView
+                android:id="@+id/adView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="110dp"
+                app:adSize="SMART_BANNER"
+                app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+        </RelativeLayout>
     </FrameLayout>
 
     <RelativeLayout
@@ -121,5 +136,7 @@
             android:layout_height="match_parent"
             android:layout_below="@+id/top_bar"
             android:clipToPadding="false"/>
+
+
     </RelativeLayout>
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
