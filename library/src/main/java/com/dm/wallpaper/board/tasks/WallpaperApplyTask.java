@@ -30,7 +30,6 @@ import com.dm.wallpaper.board.utils.LogUtil;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 
-import java.lang.ref.WeakReference;
 import java.util.Locale;
 import java.util.concurrent.Executor;
 
@@ -54,7 +53,7 @@ import java.util.concurrent.Executor;
 
 public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implements WallpaperPropertiesLoaderTask.Callback{
 
-    private final WeakReference<Context> mContext;
+    private final Context mContext;
     private Apply mApply;
     private RectF mRectF;
     private Executor mExecutor;
@@ -62,7 +61,7 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
     private MaterialDialog mDialog;
 
     private WallpaperApplyTask(Context context) {
-        mContext = new WeakReference<>(context);
+        mContext = context;
     }
 
     public WallpaperApplyTask to(Apply apply) {
@@ -88,12 +87,12 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
         if (mDialog == null) {
             int color = mWallpaper.getColor();
             if (color == 0) {
-                color = ColorHelper.getAttributeColor(mContext.get(), R.attr.colorAccent);
+                color = ColorHelper.getAttributeColor(mContext, R.attr.colorAccent);
             }
 
-            final MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext.get());
+            final MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
             builder.widgetColor(color)
-                    .typeface(TypefaceHelper.getMedium(mContext.get()), TypefaceHelper.getRegular(mContext.get()))
+                    .typeface(TypefaceHelper.getMedium(mContext), TypefaceHelper.getRegular(mContext))
                     .progress(true, 0)
                     .cancelable(false)
                     .progressIndeterminateStyle(true)
@@ -117,7 +116,7 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
         }
 
         if (mWallpaper.getDimensions() == null) {
-            return WallpaperPropertiesLoaderTask.prepare(mContext.get())
+            return WallpaperPropertiesLoaderTask.prepare(mContext)
                     .wallpaper(mWallpaper)
                     .callback(this)
                     .start(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -137,7 +136,7 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
             mDialog.dismiss();
             LogUtil.e("WallpaperApply cancelled, unable to retrieve wallpaper dimensions");
 
-            Toast.makeText(mContext.get(), R.string.wallpaper_apply_failed,
+            Toast.makeText(mContext, R.string.wallpaper_apply_failed,
                     Toast.LENGTH_LONG).show();
             return;
         }
@@ -150,18 +149,18 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
         while (!isCancelled()) {
             try {
                 Thread.sleep(1);
-                ImageSize imageSize = WallpaperHelper.getTargetSize(mContext.get());
+                ImageSize imageSize = WallpaperHelper.getTargetSize(mContext);
 
                 LogUtil.d("original rectF: " +mRectF);
 
                 if (mRectF != null && Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-                    Point point = WindowHelper.getScreenSize(mContext.get());
-                    int height = point.y - WindowHelper.getStatusBarHeight(mContext.get()) - WindowHelper.getNavigationBarHeight(mContext.get());
+                    Point point = WindowHelper.getScreenSize(mContext);
+                    int height = point.y - WindowHelper.getStatusBarHeight(mContext) - WindowHelper.getNavigationBarHeight(mContext);
                     float heightFactor = (float) imageSize.getHeight() / (float) height;
                     mRectF = WallpaperHelper.getScaledRectF(mRectF, heightFactor, 1f);
                 }
 
-                if (mRectF == null && Preferences.get(mContext.get()).isCropWallpaper()) {
+                if (mRectF == null && Preferences.get(mContext).isCropWallpaper()) {
                     /*
                      * Create a center crop rectF if wallpaper applied from grid, not opening the preview first
                      */
@@ -240,12 +239,13 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
                             publishProgress();
 
                             Bitmap bitmap = loadedBitmap;
-                            if (Preferences.get(mContext.get()).isCropWallpaper() && adjustedRectF != null) {
+                            WallpaperManager manager = WallpaperManager.getInstance(mContext);
+                            if (Preferences.get(mContext).isCropWallpaper() && adjustedRectF != null) {
                                 LogUtil.d("rectF: " +adjustedRectF);
                                 /*
                                  * Cropping bitmap
                                  */
-                                ImageSize targetSize = WallpaperHelper.getTargetSize(mContext.get());
+                                ImageSize targetSize = WallpaperHelper.getTargetSize(mContext);
 
                                 int targetWidth = Double.valueOf(
                                         ((double) loadedBitmap.getHeight() / (double) targetSize.getHeight())
@@ -279,19 +279,17 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
 
                             if (mApply == Apply.HOMESCREEN) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    WallpaperManager.getInstance(mContext.get().getApplicationContext()).setBitmap(
-                                            bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
+                                    manager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
                                     return true;
                                 }
 
-                                WallpaperManager.getInstance(mContext.get().getApplicationContext()).setBitmap(bitmap);
+                                manager.setBitmap(bitmap);
                                 return true;
                             }
 
                             if (mApply == Apply.LOCKSCREEN) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    WallpaperManager.getInstance(mContext.get().getApplicationContext()).setBitmap(
-                                            bitmap, null, true, WallpaperManager.FLAG_LOCK);
+                                    manager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK);
                                     return true;
                                 }
                             }
@@ -335,18 +333,18 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
     @Override
     protected void onCancelled(Boolean aBoolean) {
         super.onCancelled(aBoolean);
-        Toast.makeText(mContext.get(), R.string.wallpaper_apply_cancelled,
+        Toast.makeText(mContext, R.string.wallpaper_apply_cancelled,
                 Toast.LENGTH_LONG).show();
     }
 
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         super.onPostExecute(aBoolean);
-        if (mContext.get() == null) {
+        if (mContext == null) {
             return;
         }
 
-        if (((AppCompatActivity) mContext.get()).isFinishing()) {
+        if (((AppCompatActivity) mContext).isFinishing()) {
             return;
         }
 
@@ -355,16 +353,16 @@ public class WallpaperApplyTask extends AsyncTask<Void, Void, Boolean> implement
         }
 
         if (aBoolean) {
-            CafeBar.builder(mContext.get())
+            CafeBar.builder(mContext)
                     .theme(CafeBarTheme.Custom(ColorHelper.getAttributeColor(
-                            mContext.get(), R.attr.card_background)))
-                    .contentTypeface(TypefaceHelper.getRegular(mContext.get()))
+                            mContext, R.attr.card_background)))
+                    .contentTypeface(TypefaceHelper.getRegular(mContext))
                     .floating(true)
                     .fitSystemWindow()
                     .content(R.string.wallpaper_applied)
                     .show();
         } else {
-            Toast.makeText(mContext.get(), R.string.wallpaper_apply_failed,
+            Toast.makeText(mContext, R.string.wallpaper_apply_failed,
                     Toast.LENGTH_LONG).show();
         }
     }

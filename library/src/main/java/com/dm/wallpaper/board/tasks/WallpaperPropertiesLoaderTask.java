@@ -16,7 +16,6 @@ import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 import java.io.File;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
@@ -42,11 +41,11 @@ import java.util.concurrent.Executor;
 public class WallpaperPropertiesLoaderTask extends AsyncTask<Void, Void, Boolean> {
 
     private Wallpaper mWallpaper;
-    private WeakReference<Callback> mCallback;
-    private final WeakReference<Context> mContext;
+    private Callback mCallback;
+    private final Context mContext;
 
     private WallpaperPropertiesLoaderTask(Context context) {
-        mContext = new WeakReference<>(context);
+        mContext = context;
     }
 
     public WallpaperPropertiesLoaderTask wallpaper(Wallpaper wallpaper) {
@@ -55,7 +54,7 @@ public class WallpaperPropertiesLoaderTask extends AsyncTask<Void, Void, Boolean
     }
 
     public WallpaperPropertiesLoaderTask callback(@Nullable Callback callback) {
-        mCallback = new WeakReference<>(callback);
+        mCallback = callback;
         return this;
     }
 
@@ -104,7 +103,7 @@ public class WallpaperPropertiesLoaderTask extends AsyncTask<Void, Void, Boolean
                         mWallpaper.setSize(contentLength);
                     }
 
-                    Database.get(mContext.get()).updateWallpaper(mWallpaper);
+                    Database.get(mContext).updateWallpaper(mWallpaper);
                     stream.close();
                     return true;
                 }
@@ -120,7 +119,7 @@ public class WallpaperPropertiesLoaderTask extends AsyncTask<Void, Void, Boolean
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         super.onPostExecute(aBoolean);
-        if (aBoolean && mContext.get() != null && !((AppCompatActivity) mContext.get()).isFinishing()) {
+        if (aBoolean && mContext != null && !((AppCompatActivity) mContext).isFinishing()) {
             if (mWallpaper.getSize() <= 0) {
                 File target = ImageLoader.getInstance().getDiskCache().get(mWallpaper.getUrl());
                 if (target.exists()) {
@@ -129,8 +128,8 @@ public class WallpaperPropertiesLoaderTask extends AsyncTask<Void, Void, Boolean
             }
         }
 
-        if (mCallback != null && mCallback.get() != null) {
-            mCallback.get().onPropertiesReceived(mWallpaper);
+        if (mCallback != null) {
+            mCallback.onPropertiesReceived(mWallpaper);
         }
     }
 

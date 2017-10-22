@@ -28,8 +28,6 @@ import com.dm.wallpaper.board.utils.Extras;
 import com.dm.wallpaper.board.utils.LogUtil;
 import com.dm.wallpaper.board.utils.listeners.InAppBillingListener;
 
-import java.lang.ref.WeakReference;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -64,7 +62,7 @@ public class InAppBillingFragment extends DialogFragment {
     private InAppBillingAdapter mAdapter;
     private AsyncTask<Void, Void, Boolean> mLoadInAppProducts;
 
-    private static WeakReference<BillingProcessor> mBillingProcessor;
+    private static BillingProcessor mBillingProcessor;
 
     private static final String TAG = "com.dm.wallpaper.board.dialog.inappbilling";
 
@@ -79,7 +77,7 @@ public class InAppBillingFragment extends DialogFragment {
 
     public static void showInAppBillingDialog(@NonNull FragmentManager fm, BillingProcessor billingProcessor,
                                               @NonNull String key, @NonNull String[] productId) {
-        mBillingProcessor = new WeakReference<>(billingProcessor);
+        mBillingProcessor = billingProcessor;
         FragmentTransaction ft = fm.beginTransaction();
         Fragment prev = fm.findFragmentByTag(TAG);
         if (prev != null) {
@@ -178,7 +176,7 @@ public class InAppBillingFragment extends DialogFragment {
                         }
 
                         for (int i = 0; i < mProductsId.length; i++) {
-                            SkuDetails product = mBillingProcessor.get()
+                            SkuDetails product = mBillingProcessor
                                     .getPurchaseListingDetails(mProductsId[i]);
                             if (product != null) {
                                 InAppBilling inAppBilling;

@@ -24,7 +24,6 @@ import com.dm.wallpaper.board.utils.LogUtil;
 
 import java.io.DataOutputStream;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -54,10 +53,10 @@ import cz.msebera.android.httpclient.NameValuePair;
 
 public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
 
-    private final WeakReference<Context> mContext;
+    private Context mContext;
 
     private WallpapersLoaderTask(Context context) {
-        mContext = new WeakReference<>(context);
+        mContext = context;
     }
 
     public static AsyncTask start(@NonNull Context context) {
@@ -75,7 +74,7 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
                 Thread.sleep(1);
                 String wallpaperUrl = WallpaperBoardApplication.getConfiguration().getJsonStructure().getUrl();
                 if (wallpaperUrl == null) {
-                    wallpaperUrl = mContext.get().getResources().getString(R.string.wallpaper_json);
+                    wallpaperUrl = mContext.getResources().getString(R.string.wallpaper_json);
                 }
 
                 URL url = new URL(wallpaperUrl);
@@ -128,8 +127,8 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
                     }
 
                     List<Wallpaper> wallpapers;
-                    if (Database.get(mContext.get()).getWallpapersCount() > 0) {
-                        List<Category> categories = Database.get(mContext.get()).getCategories();
+                    if (Database.get(mContext).getWallpapersCount() > 0) {
+                        List<Category> categories = Database.get(mContext).getCategories();
                         List<Category> newCategories = new ArrayList<>();
                         for (int i = 0; i < categoryList.size(); i++) {
                             Category category = JsonHelper.getCategory(categoryList.get(i));
@@ -150,10 +149,10 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
                         List<Category> newlyAddedC = (List<Category>) ListHelper.difference(
                                 intersectionC, newCategories);
 
-                        Database.get(mContext.get()).deleteCategories(differenceC);
-                        Database.get(mContext.get()).addCategories(newlyAddedC);
+                        Database.get(mContext).deleteCategories(differenceC);
+                        Database.get(mContext).addCategories(newlyAddedC);
 
-                        wallpapers = Database.get(mContext.get()).getWallpapers();
+                        wallpapers = Database.get(mContext).getWallpapers();
                         List<Wallpaper> newWallpapers = new ArrayList<>();
                         for (int i = 0; i < wallpaperList.size(); i++) {
                             Wallpaper wallpaper = JsonHelper.getWallpaper(wallpaperList.get(i));
@@ -174,7 +173,7 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
 
                         //No new wallpapers, immediately returns true
                         if (newlyAddedW.size() == 0) {
-                            LogUtil.d("Task from " +mContext.get().getPackageName() +": no new wallpapers");
+                            LogUtil.d("Task from " +mContext.getPackageName() +": no new wallpapers");
                             return true;
                         }
 
@@ -183,26 +182,26 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
                         List<Wallpaper> differenceW = (List<Wallpaper>)
                                 ListHelper.difference(intersectionW, wallpapers);
 
-                        List<Wallpaper> favorites = Database.get(mContext.get()).getFavoriteWallpapers();
+                        List<Wallpaper> favorites = Database.get(mContext).getFavoriteWallpapers();
 
-                        Database.get(mContext.get()).deleteWallpapers(differenceW);
+                        Database.get(mContext).deleteWallpapers(differenceW);
 
                         if (intersectionW.size() == 0) {
-                            Database.get(mContext.get()).resetAutoIncrement();
+                            Database.get(mContext).resetAutoIncrement();
                         }
 
-                        Database.get(mContext.get()).addWallpapers(newlyAddedW);
+                        Database.get(mContext).addWallpapers(newlyAddedW);
 
                         if (differenceW.size() > 0) {
-                            Database.get(mContext.get()).updateWallpapers(favorites);
+                            Database.get(mContext).updateWallpapers(favorites);
                         }
                         return true;
                     }
 
-                    Database.get(mContext.get()).addCategories(categoryList);
-                    Database.get(mContext.get()).addWallpapers(wallpaperList);
+                    Database.get(mContext).addCategories(categoryList);
+                    Database.get(mContext).addWallpapers(wallpaperList);
 
-                    Database.get(mContext.get()).restoreFavorites();
+                    Database.get(mContext).restoreFavorites();
                     return true;
                 }
                 return false;
@@ -217,18 +216,18 @@ public class WallpapersLoaderTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         super.onPostExecute(aBoolean);
-        if (mContext.get() == null) return;
-        if (((AppCompatActivity) mContext.get()).isFinishing()) return;
+        if (mContext == null) return;
+        if (((AppCompatActivity) mContext).isFinishing()) return;
 
         if (!aBoolean) {
             int res = R.string.connection_failed;
-            if (Database.get(mContext.get()).getWallpapersCount() > 0) {
+            if (Database.get(mContext).getWallpapersCount() > 0) {
                 res = R.string.wallpapers_loader_failed;
             }
-            CafeBar.builder(mContext.get())
+            CafeBar.builder(mContext)
                     .theme(CafeBarTheme.Custom(ColorHelper.getAttributeColor(
-                            mContext.get(), R.attr.card_background)))
-                    .contentTypeface(TypefaceHelper.getRegular(mContext.get()))
+                            mContext, R.attr.card_background)))
+                    .contentTypeface(TypefaceHelper.getRegular(mContext))
                     .content(res)
                     .fitSystemWindow()
                     .duration(CafeBarDuration.MEDIUM.getDuration())
