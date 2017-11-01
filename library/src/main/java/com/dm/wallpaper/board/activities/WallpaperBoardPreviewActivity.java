@@ -151,7 +151,7 @@ public class WallpaperBoardPreviewActivity extends AppCompatActivity implements 
         setContentView(R.layout.activity_wallpaper_preview);
 
         MobileAds.initialize(getApplicationContext(),
-                "ca-app-pub-3940256099942544~3347511713");
+                "ca-app-pub-1767918909138518~1370051253");
 
         mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
